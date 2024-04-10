@@ -1,10 +1,10 @@
 package main
 
 import (
-	openapi "github.com/GIT_USER_ID/GIT_REPO_ID/go"
 	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/repository"
 	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/repository/postgres"
 	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/service"
+	openapi "github.com/Rustamchuk/Avito-Banner-Service/go"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
