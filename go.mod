@@ -1,4 +1,4 @@
-module github.com/GIT_USER_ID/GIT_REPO_ID
+module github.com/Rustamchuk/Avito-Banner-Service
 
 go 1.22.1
 
