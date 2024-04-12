@@ -8,6 +8,8 @@ docker run -d -p 8080:8080 --network=my-network myapp
 
 postgres://postgres:admin@banner-service-db:5432/postgres?sslmode=disable
 
+docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
+
 Постарался отразить свою работу в MakeFile. Но опишу конкретные шаги. 
 
 1) docker pull postgres - Качаем postgres
