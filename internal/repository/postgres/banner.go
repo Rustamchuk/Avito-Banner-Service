@@ -1,10 +1,10 @@
 package postgres
 
 import (
-	openapi "BannerService/internal/api/open_api_server/go"
-	"BannerService/internal/model"
 	"context"
+	"encoding/json"
 	"fmt"
+	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"strings"
@@ -27,11 +27,71 @@ func (b *BannerPostgres) BannerGet(
 	offset int32,
 ) (openapi.ImplResponse, error) {
 	var banners []openapi.BannerGet200ResponseInner
-	query := `SELECT id, content, is_active, feature_id, tag_ids, created_at, updated_at FROM banners WHERE feature_id = $1 AND $2 = ANY(tag_ids) LIMIT $3 OFFSET $4`
-	err := b.db.SelectContext(ctx, &banners, query, featureId, tagId, limit, offset)
+	baseQuery := `SELECT banner_id, content, is_active, feature_id, tag_ids, created_at, updated_at FROM banners`
+
+	whereClauses := []string{}
+	args := []interface{}{}
+	argCounter := 1
+
+	// Добавление условий фильтрации, если параметры не равны 0
+	if featureId != 0 {
+		whereClauses = append(whereClauses, fmt.Sprintf("feature_id = $%d", argCounter))
+		args = append(args, featureId)
+		argCounter++
+	}
+
+	if tagId != 0 {
+		whereClauses = append(whereClauses, fmt.Sprintf("$%d = ANY(tag_ids)", argCounter))
+		args = append(args, tagId)
+		argCounter++
+	}
+
+	if len(whereClauses) > 0 {
+		baseQuery += " WHERE " + strings.Join(whereClauses, " AND ")
+	}
+
+	// Применение LIMIT и OFFSET только если limit > 0
+	if limit > 0 {
+		baseQuery += fmt.Sprintf(" LIMIT $%d", argCounter)
+		args = append(args, limit)
+		argCounter++
+
+		if offset > 0 {
+			baseQuery += fmt.Sprintf(" OFFSET $%d", argCounter)
+			args = append(args, offset)
+		}
+	}
+
+	rows, err := b.db.QueryContext(ctx, baseQuery, args...) // Используем args...
 	if err != nil {
 		return openapi.Response(500, nil), err
 	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var banner openapi.BannerGet200ResponseInner
+		var contentJSON []byte
+		var tagIds pq.Int64Array
+
+		if err := rows.Scan(&banner.BannerId, &contentJSON, &banner.IsActive, &banner.FeatureId, &tagIds, &banner.CreatedAt, &banner.UpdatedAt); err != nil {
+			return openapi.Response(500, nil), err
+		}
+
+		if err := json.Unmarshal(contentJSON, &banner.Content); err != nil {
+			return openapi.Response(500, nil), err
+		}
+
+		for _, id := range tagIds {
+			banner.TagIds = append(banner.TagIds, int32(id))
+		}
+
+		banners = append(banners, banner)
+	}
+
+	if err := rows.Err(); err != nil {
+		return openapi.Response(500, nil), err
+	}
+
 	return openapi.Response(200, banners), nil
 }
 
@@ -40,7 +100,7 @@ func (b *BannerPostgres) BannerIdDelete(
 	id int32,
 	token string,
 ) (openapi.ImplResponse, error) {
-	query := `DELETE FROM banners WHERE id = $1`
+	query := `DELETE FROM banners WHERE banner_id = $1`
 	result, err := b.db.ExecContext(ctx, query, id)
 	if err != nil {
 		return openapi.Response(500, nil), err
@@ -76,8 +136,12 @@ func (b *BannerPostgres) BannerIdPatch(
 		paramId++
 	}
 	if bannerIdPatchRequest.Content != nil {
+		contentJSON, err := json.Marshal(*bannerIdPatchRequest.Content)
+		if err != nil {
+			return openapi.Response(500, nil), err
+		}
 		query += fmt.Sprintf("content = $%d, ", paramId)
-		params = append(params, *bannerIdPatchRequest.Content)
+		params = append(params, string(contentJSON))
 		paramId++
 	}
 	if bannerIdPatchRequest.IsActive != nil {
@@ -87,7 +151,7 @@ func (b *BannerPostgres) BannerIdPatch(
 	}
 
 	// Удаление последней запятой и добавление условия WHERE
-	query = strings.TrimSuffix(query, ", ") + fmt.Sprintf(" WHERE id = $%d", paramId)
+	query = strings.TrimSuffix(query, ", ") + fmt.Sprintf(" WHERE banner_id = $%d", paramId)
 	params = append(params, id)
 
 	result, err := b.db.ExecContext(ctx, query, params...)
@@ -109,13 +173,17 @@ func (b *BannerPostgres) BannerPost(
 	bannerPostRequest openapi.BannerPostRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
-	query := `INSERT INTO banners (tag_ids, feature_id, content, is_active) VALUES ($1, $2, $3, $4) RETURNING id`
-	var newBannerId int32
-	err := b.db.QueryRowContext(ctx, query, pq.Array(bannerPostRequest.TagIds), bannerPostRequest.FeatureId, bannerPostRequest.Content, bannerPostRequest.IsActive).Scan(&newBannerId)
+	jsonContent, err := json.Marshal(bannerPostRequest.Content)
 	if err != nil {
 		return openapi.Response(500, nil), err
 	}
-	return openapi.Response(201, map[string]int32{"id": newBannerId}), nil
+	query := `INSERT INTO banners (tag_ids, feature_id, content, is_active) VALUES ($1, $2, $3, $4) RETURNING banner_id`
+	var newBannerId int32
+	err = b.db.QueryRowContext(ctx, query, pq.Array(bannerPostRequest.TagIds), bannerPostRequest.FeatureId, jsonContent, bannerPostRequest.IsActive).Scan(&newBannerId)
+	if err != nil {
+		return openapi.Response(500, nil), err
+	}
+	return openapi.Response(201, map[string]int32{"banner_id": newBannerId}), nil
 }
 
 func (b *BannerPostgres) UserBannerGet(
@@ -125,11 +193,9 @@ func (b *BannerPostgres) UserBannerGet(
 	useLastRevision bool,
 	token string,
 ) (openapi.ImplResponse, error) {
-	var banner model.Banner
-	query := `SELECT id, content, is_active, feature_id, tag_ids, created_at, updated_at FROM banners WHERE feature_id = $1 AND $2 = ANY(tag_ids) ORDER BY RANDOM() LIMIT 1`
-	err := b.db.GetContext(ctx, &banner, query, featureId, tagId)
+	banner, err := b.BannerGet(ctx, token, tagId, featureId, 1, 0)
 	if err != nil {
 		return openapi.Response(500, nil), err
 	}
-	return openapi.Response(200, banner), nil
+	return banner, nil
 }

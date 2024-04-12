@@ -1,9 +1,9 @@
 package repository
 
 import (
-	openapi "BannerService/internal/api/open_api_server/go"
-	"BannerService/internal/repository/postgres"
 	"context"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository/postgres"
+	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 	"github.com/jmoiron/sqlx"
 )
 

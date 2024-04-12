@@ -1,9 +1,9 @@
 package service
 
 import (
-	openapi "BannerService/internal/api/open_api_server/go"
-	"BannerService/internal/repository"
 	"context"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository"
+	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 )
 
 type BannerImplementation struct {
@@ -22,8 +22,7 @@ func (b *BannerImplementation) BannerGet(
 	limit int32,
 	offset int32,
 ) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return b.repo.BannerGet(ctx, token, featureId, tagId, limit, offset)
 }
 
 func (b *BannerImplementation) BannerIdDelete(
@@ -31,8 +30,7 @@ func (b *BannerImplementation) BannerIdDelete(
 	id int32,
 	token string,
 ) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return b.repo.BannerIdDelete(ctx, id, token)
 }
 
 func (b *BannerImplementation) BannerIdPatch(
@@ -41,8 +39,7 @@ func (b *BannerImplementation) BannerIdPatch(
 	bannerIdPatchRequest openapi.BannerIdPatchRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return b.repo.BannerIdPatch(ctx, id, bannerIdPatchRequest, token)
 }
 
 func (b *BannerImplementation) BannerPost(
@@ -50,8 +47,7 @@ func (b *BannerImplementation) BannerPost(
 	bannerPostRequest openapi.BannerPostRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return b.repo.BannerPost(ctx, bannerPostRequest, token)
 }
 
 func (b *BannerImplementation) UserBannerGet(
@@ -61,6 +57,5 @@ func (b *BannerImplementation) UserBannerGet(
 	useLastRevision bool,
 	token string,
 ) (openapi.ImplResponse, error) {
-	//TODO implement me
-	panic("implement me")
+	return b.repo.UserBannerGet(ctx, tagId, featureId, useLastRevision, token)
 }

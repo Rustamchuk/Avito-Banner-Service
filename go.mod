@@ -1,9 +1,9 @@
 module github.com/Rustamchuk/Avito-Banner-Service
 
-go 1.22.1
+go 1.20
 
 require (
-	github.com/Rustamchuk/Avito-Banner-Service v0.0.0-20240410191331-8ad8462e47e2
+	github.com/gorilla/mux v1.8.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/joho/godotenv v1.5.1
 	github.com/lib/pq v1.2.0

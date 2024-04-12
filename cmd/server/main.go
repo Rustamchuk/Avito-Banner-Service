@@ -1,41 +1,36 @@
 package main
 
 import (
-	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/repository"
-	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/repository/postgres"
-	"github.com/GIT_USER_ID/GIT_REPO_ID/internal/service"
-	openapi "github.com/Rustamchuk/Avito-Banner-Service/go"
-	"github.com/joho/godotenv"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository/postgres"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/service"
+	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 	_ "github.com/lib/pq"
 	"github.com/sirupsen/logrus"
-	"github.com/spf13/viper"
 	"golang.org/x/net/context"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 )
 
 func main() {
 	logrus.SetFormatter(new(logrus.JSONFormatter))
 
-	if err := initConfig(); err != nil {
-		logrus.Fatalf("error initializing configs: %s", err.Error())
-	}
+	//if err := initConfig(); err != nil {
+	//	logrus.Fatalf("error initializing configs: %s", err.Error())
+	//}
 
-	if err := godotenv.Load(); err != nil {
-		logrus.Fatalf("error loading env variables: %s", err.Error())
-	}
+	//if err := godotenv.Load(); err != nil {
+	//	logrus.Fatalf("error loading env variables: %s", err.Error())
+	//}
 
 	db, err := postgres.NewPostgresDB(postgres.Config{
-		Host:     viper.GetString("db.host"),
-		Port:     viper.GetString("db.port"),
-		Username: viper.GetString("db.username"),
-		DBName:   viper.GetString("db.dbname"),
-		SSLMode:  viper.GetString("db.sslmode"),
-		Password: os.Getenv("DB_PASSWORD"),
+		Host:     "banner-service-db",
+		Port:     "5432",
+		Username: "postgres",
+		DBName:   "postgres",
+		SSLMode:  "disable",
+		Password: "admin",
 	})
 	if err != nil {
 		logrus.Fatalf("failed to initialize db: %s", err.Error())
@@ -50,37 +45,37 @@ func main() {
 
 	router := openapi.NewRouter(DefaultAPIController)
 
-	//log.Fatal(http.ListenAndServe(":8080", router))
+	log.Fatal(http.ListenAndServe(":8080", router))
 
-	srv := new(Server)
-	go func() {
-		if err := srv.Run(viper.GetString("port"), router); err != nil {
-			logrus.Fatalf("error occured while running http server: %s", err.Error())
-		}
-	}()
-
-	logrus.Print("TodoApp Started")
-
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
-	<-quit
-
-	logrus.Print("TodoApp Shutting Down")
-
-	if err := srv.Shutdown(context.Background()); err != nil {
-		logrus.Errorf("error occured on server shutting down: %s", err.Error())
-	}
-
-	if err := db.Close(); err != nil {
-		logrus.Errorf("error occured on db connection close: %s", err.Error())
-	}
+	//srv := new(Server)
+	//go func() {
+	//	if err := srv.Run(viper.GetString("port"), router); err != nil {
+	//		logrus.Fatalf("error occured while running http server: %s", err.Error())
+	//	}
+	//}()
+	//
+	//logrus.Print("TodoApp Started")
+	//
+	//quit := make(chan os.Signal, 1)
+	//signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+	//<-quit
+	//
+	//logrus.Print("TodoApp Shutting Down")
+	//
+	//if err := srv.Shutdown(context.Background()); err != nil {
+	//	logrus.Errorf("error occured on server shutting down: %s", err.Error())
+	//}
+	//
+	//if err := db.Close(); err != nil {
+	//	logrus.Errorf("error occured on db connection close: %s", err.Error())
+	//}
 }
 
-func initConfig() error {
-	viper.AddConfigPath("configs")
-	viper.SetConfigName("config")
-	return viper.ReadInConfig()
-}
+//func initConfig() error {
+//	viper.AddConfigPath("configs")
+//	viper.SetConfigName("config")
+//	return viper.ReadInConfig()
+//}
 
 type Server struct {
 	httpServer *http.Server
