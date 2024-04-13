@@ -4,7 +4,7 @@
 
 # Stack: Go/Golang, PostgreSQL, Docker, Postman, OpenApi Code-generating
 
-## запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
+## Запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
 
 - **Запуск проекта:**
   
@@ -31,6 +31,18 @@
 - **Язык сервиса:** `Go`. 
 - **База данных:** `PostgreSQL`. [Миграции](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/schema)
 - Для **деплоя зависимостей и самого сервиса** `Docker` с сетью для связи базы и сервиса в одном контейнере.
+
+## Навигатор по проекту
+- [Handlers](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/pkg/generated/open_api_server) - Это Сгенерированный `OpenApi Server` по данному [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml), реализующий прием HTTP запросов.
+- [Sevice](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/internal/service/banner.go) - Это связующее звено между `Database` и `Handlers`.
+- [DataBase](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/internal/repository) - Работа с базой данных с помощью `PostgreSQL`.
+- [Main](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/cmd/server/main.go) - Запуск всех необходимых компонентов
+- [Configs](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/configs/config.yml) + [Env]() - Конфигурация Базы данных и Http приемника. Не стал прятать .env через .gitignore, так как проект учебный
+- [Client](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/.env) - Сгенерированный по `OpenApi` клиент для отправки запросов. Помогает в тестировании
+- [Dockerfile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Dockerfile) - Файл для билда приложения
+- [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile) - Файл для запуска или отката приложения
+- [api.yaml](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/api.yaml) - Скопированный api из задания, чтобы лежал рядом
+- [Migrations](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/schema) - файлы миграции, чтобы поднять или откатить базу данных
 
 ## Условия
 1. **Используйте этот [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml)**
