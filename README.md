@@ -4,7 +4,7 @@
 
 # Stack: Go/Golang, PostgreSQL, Docker, Postman, OpenApi Code-generating
 
-## запуск проекта
+## запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
 
 - **Кодогенерация сервера по API** docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
 - **Сборка приложения** docker build -t myapp .
