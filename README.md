@@ -6,18 +6,27 @@
 
 ## запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
 
-- **Кодогенерация сервера по API** docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
-- **Сборка приложения** docker build -t myapp .
-- **Создание сети** docker network create my-network
-- **Запуск базы данных** docker run --name=banner-service-db -e POSTGRES_PASSWORD=admin -p 5432:5432 -d --rm --network=my-network postgres
-- **Запуск приложения** docker run -d -p 8080:8080 --network=my-network myapp
-- **Подняли необходимые таблицы** migrate -path ./schema -database 'postgres://postgres:admin@localhost:5432/postgres?sslmode=disable' up
+- **Запуск проекта:** "make all"
 
+  Кодо генерация сервера по данному [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml), тем самым получаем обработчик запросов.
+
+  Создаем сеть Docker. Чтобы уместить в одном контейнере два процесса
+
+  Поднимаем Базу данных с миграцией 5432
+
+  Билдим проект и запускаем порт 8080
+
+- **Выход из проекта:** "make exit"
+
+  (Будет запрос подтверждения "Are you sure you want to apply all down migrations? [y/N]" отвечаем в консоль "y").
+
+  Откат таблиц, базы данных и приложения. Удаление контейнеров и сети
+- **Все команды запускались на Windows Ubuntu Linux (WSL)**
 
 ## Требования по стеку
 - **Язык сервиса:** Go. 
-- **База данных:** PostgreSQL. 
-- Для **деплоя зависимостей и самого сервиса** Docker в двух сетях для связи базы и сервиса в одном контейнере.
+- **База данных:** PostgreSQL. 
+- Для **деплоя зависимостей и самого сервиса** Docker с сетью для связи базы и сервиса в одном контейнере.
 
 ## Условия
 1. Используйте этот [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml)
