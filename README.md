@@ -7,6 +7,11 @@
 ## запуск проекта
 
 - **Кодогенерация сервера по API** docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
+- **Сборка приложения** docker build -t myapp .
+- **Создание сети** docker network create my-network
+- **Запуск базы данных** docker run --name=banner-service-db -e POSTGRES_PASSWORD=admin -p 5432:5432 -d --rm --network=my-network postgres
+- **Запуск приложения** docker run -d -p 8080:8080 --network=my-network myapp
+- **Подняли необходимые таблицы** migrate -path ./schema -database 'postgres://postgres:admin@localhost:5432/postgres?sslmode=disable' up
 
 
 ## Требования по стеку
