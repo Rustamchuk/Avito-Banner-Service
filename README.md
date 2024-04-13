@@ -4,6 +4,9 @@
 
 # Stack: Go/Golang, PostgreSQL, Docker, Postman, OpenApi Code-generating
 
+## Пример использования + Тестирование :fire:
+## [POSTMAN](https://www.postman.com/altimetry-explorer-81517239/workspace/banner-service/collection/31992633-4b8e58f8-bfee-40ec-a6e5-3cdd6d4b510b)
+
 ## Запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
 
 - **Запуск проекта:**
@@ -26,9 +29,6 @@
 
   Откат таблиц, базы данных и приложения. Удаление контейнеров и сети
 - **Все команды запускались на Windows Ubuntu Linux (WSL)**
-
-## Пример использования + Тестирование :fire:
-## [POSTMAN](https://www.postman.com/altimetry-explorer-81517239/workspace/banner-service/collection/31992633-4b8e58f8-bfee-40ec-a6e5-3cdd6d4b510b)
 
 ## Требования по стеку
 - **Язык сервиса:** `Go`. 
