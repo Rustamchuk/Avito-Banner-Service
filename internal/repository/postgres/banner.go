@@ -7,6 +7,7 @@ import (
 	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
+	"net/http"
 	"strings"
 )
 
@@ -46,6 +47,10 @@ func (b *BannerPostgres) BannerGet(
 		argCounter++
 	}
 
+	if token != "admin" {
+		whereClauses = append(whereClauses, fmt.Sprintf("is_active = true"))
+	}
+
 	if len(whereClauses) > 0 {
 		baseQuery += " WHERE " + strings.Join(whereClauses, " AND ")
 	}
@@ -73,12 +78,13 @@ func (b *BannerPostgres) BannerGet(
 		var contentJSON []byte
 		var tagIds pq.Int64Array
 
-		if err := rows.Scan(&banner.BannerId, &contentJSON, &banner.IsActive, &banner.FeatureId, &tagIds, &banner.CreatedAt, &banner.UpdatedAt); err != nil {
-			return openapi.Response(500, nil), err
+		err = rows.Scan(&banner.BannerId, &contentJSON, &banner.IsActive, &banner.FeatureId, &tagIds, &banner.CreatedAt, &banner.UpdatedAt)
+		if err != nil {
+			return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 		}
 
-		if err := json.Unmarshal(contentJSON, &banner.Content); err != nil {
-			return openapi.Response(500, nil), err
+		if err = json.Unmarshal(contentJSON, &banner.Content); err != nil {
+			return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 		}
 
 		for _, id := range tagIds {
@@ -88,11 +94,11 @@ func (b *BannerPostgres) BannerGet(
 		banners = append(banners, banner)
 	}
 
-	if err := rows.Err(); err != nil {
-		return openapi.Response(500, nil), err
+	if err = rows.Err(); err != nil {
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 
-	return openapi.Response(200, banners), nil
+	return openapi.Response(http.StatusOK, banners), nil
 }
 
 func (b *BannerPostgres) BannerIdDelete(
@@ -100,19 +106,23 @@ func (b *BannerPostgres) BannerIdDelete(
 	id int32,
 	token string,
 ) (openapi.ImplResponse, error) {
+	if token != "admin" {
+		return openapi.ImplResponse{Code: http.StatusMethodNotAllowed}, nil
+	}
+
 	query := `DELETE FROM banners WHERE banner_id = $1`
 	result, err := b.db.ExecContext(ctx, query, id)
 	if err != nil {
-		return openapi.Response(500, nil), err
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return openapi.Response(500, nil), err
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 	if rowsAffected == 0 {
-		return openapi.Response(404, nil), nil
+		return openapi.ImplResponse{Code: http.StatusNotFound}, nil
 	}
-	return openapi.Response(204, nil), nil
+	return openapi.ImplResponse{Code: http.StatusNoContent}, nil
 }
 
 func (b *BannerPostgres) BannerIdPatch(
@@ -121,6 +131,10 @@ func (b *BannerPostgres) BannerIdPatch(
 	bannerIdPatchRequest openapi.BannerIdPatchRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
+	if token != "admin" {
+		return openapi.ImplResponse{Code: http.StatusMethodNotAllowed}, nil
+	}
+
 	query := `UPDATE banners SET `
 	params := []interface{}{}
 	paramId := 1
@@ -156,14 +170,14 @@ func (b *BannerPostgres) BannerIdPatch(
 
 	result, err := b.db.ExecContext(ctx, query, params...)
 	if err != nil {
-		return openapi.Response(500, nil), err
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return openapi.Response(500, nil), err
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 	if rowsAffected == 0 {
-		return openapi.Response(404, nil), nil
+		return openapi.ImplResponse{Code: http.StatusNotFound}, nil
 	}
 	return openapi.Response(200, nil), nil
 }
@@ -173,6 +187,10 @@ func (b *BannerPostgres) BannerPost(
 	bannerPostRequest openapi.BannerPostRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
+	if token != "admin" {
+		return openapi.ImplResponse{Code: http.StatusMethodNotAllowed}, nil
+	}
+
 	jsonContent, err := json.Marshal(bannerPostRequest.Content)
 	if err != nil {
 		return openapi.Response(500, nil), err
@@ -183,7 +201,7 @@ func (b *BannerPostgres) BannerPost(
 	if err != nil {
 		return openapi.Response(500, nil), err
 	}
-	return openapi.Response(201, map[string]int32{"banner_id": newBannerId}), nil
+	return openapi.Response(http.StatusCreated, map[string]int32{"banner_id": newBannerId}), nil
 }
 
 func (b *BannerPostgres) UserBannerGet(
@@ -195,7 +213,7 @@ func (b *BannerPostgres) UserBannerGet(
 ) (openapi.ImplResponse, error) {
 	banner, err := b.BannerGet(ctx, token, tagId, featureId, 1, 0)
 	if err != nil {
-		return openapi.Response(500, nil), err
+		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
 	}
 	return banner, nil
 }
