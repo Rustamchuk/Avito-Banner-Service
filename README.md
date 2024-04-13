@@ -4,6 +4,16 @@
 
 # Stack: Go/Golang, PostgreSQL, Docker, Postman, OpenApi Code-generating
 
+## запуск проекта
+
+- **Кодогенерация сервера по API** docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
+
+
+## Требования по стеку
+- **Язык сервиса:** Go. 
+- **База данных:** PostgreSQL. 
+- Для **деплоя зависимостей и самого сервиса** Docker в двух сетях для связи базы и сервиса в одном контейнере.
+
 ## Условия
 1. Используйте этот [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml)
 
@@ -36,11 +46,6 @@
 6. Баннеры могут быть временно выключены. Если баннер выключен, то обычные пользователи не должны его получать, при этом админы должны иметь к нему доступ.
 
   Если текущая роль User, то добавляется приписка в SQL запрос "is_active = true", убирая лишние запросы
-
-## Требования по стеку
-- **Язык сервиса:** Go. 
-- **База данных:** PostgreSQL. 
-- Для **деплоя зависимостей и самого сервиса** Docker в двух сетях для связи базы и сервиса в одном контейнере.
 
 
 
