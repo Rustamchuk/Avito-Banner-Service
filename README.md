@@ -6,36 +6,40 @@
 
 ## запуск проекта с помощью [Makefile](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/Makefile)
 
-- **Запуск проекта:** "make all"
+- **Запуск проекта:**
+  
+  `make all`
 
-  Кодо генерация сервера по данному [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml), тем самым получаем обработчик запросов.
+  Кодо генерация `OpenApi Server` по данному [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml), тем самым получаем обработчик запросов.
 
-  Создаем сеть Docker. Чтобы уместить в одном контейнере два процесса
+  Создаем сеть `Docker`. Чтобы уместить в одном контейнере два процесса
 
-  Поднимаем Базу данных с миграцией порт 5432
+  Поднимаем Базу данных с миграцией порт `5432`
 
-  Билдим проект и запускаем порт 8080
+  Билдим проект и запускаем порт `8080`
 
-- **Выход из проекта:** "make exit"
+- **Выход из проекта:**
 
-  (Будет запрос подтверждения "Are you sure you want to apply all down migrations? [y/N]" отвечаем в консоль "y").
+  `make exit`
+
+  (Будет запрос подтверждения `Are you sure you want to apply all down migrations? [y/N]` отвечаем в консоль `y`).
 
   Откат таблиц, базы данных и приложения. Удаление контейнеров и сети
 - **Все команды запускались на Windows Ubuntu Linux (WSL)**
 
 ## Требования по стеку
-- **Язык сервиса:** Go. 
-- **База данных:** PostgreSQL. [Миграции](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/schema)
-- Для **деплоя зависимостей и самого сервиса** Docker с сетью для связи базы и сервиса в одном контейнере.
+- **Язык сервиса:** `Go`. 
+- **База данных:** `PostgreSQL`. [Миграции](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/schema)
+- Для **деплоя зависимостей и самого сервиса** `Docker` с сетью для связи базы и сервиса в одном контейнере.
 
 ## Условия
 1. Используйте этот [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml)
 
-  Использовал Генерацию кода по Open api. Что получил: Server, Client.
+  Использовал Генерацию кода по `Open api`. Что получил: `Server`, `Client`.
 
-  Server значительно ускорил работу, кодогенерация реализовала handlers, обработку запросов. Разобрался в технологии и реализовал работу с базой данных
+  `Server` значительно ускорил работу, кодогенерация реализовала handlers, обработку запросов. Разобрался в технологии и реализовал работу с базой данных
 
-  Client необходим для вызова запросов. Сильно помогает в написании тестов
+  `Client` необходим для вызова запросов. Сильно помогает в написании тестов
   
 2. Тегов и фичей небольшое количество (до 1000), RPS — 1k, SLI времени ответа — 50 мс, SLI успешности ответа — 99.99%
 
@@ -43,7 +47,7 @@
 
 3. Для авторизации доступов должны использоваться 2 вида токенов: пользовательский и админский.  Получение баннера может происходить с помощью пользовательского или админского токена, а все остальные действия могут выполняться только с помощью админского токена.  
 
-  Данный пункт реализован через заранее заданный токен адмна "admin". По-хорошему надо реализовать отдельный микросервис на регистрацию и JWT для срывания паролей. Чтобы детектить админой. Но!
+  Данный пункт реализован через заранее заданный токен адмна `admin`. По-хорошему надо реализовать отдельный микросервис на регистрацию и JWT для срывания паролей. Чтобы детектить админой. Но!
 
   Во-первых, в предложенном API нет handlers для регистрации, что значит это не предусмотрено в данном проекте
 
@@ -59,7 +63,7 @@
 
 6. Баннеры могут быть временно выключены. Если баннер выключен, то обычные пользователи не должны его получать, при этом админы должны иметь к нему доступ.
 
-  Если текущая роль User, то добавляется приписка в SQL запрос "is_active = true", убирая лишние запросы
+  Если текущая роль `User`, то добавляется приписка в SQL запрос `is_active = true`, убирая лишние запросы
 
 
 
@@ -117,25 +121,4 @@
 1. Код сервиса
 2. Makefile c командами сборки проекта / Описанная в README.md инструкция по запуску
 3. Описанные в README.md вопросы/проблемы, с которыми столкнулись,  и ваша логика их решений (если требуется)
-
-
-docker build -t myapp .
-
-docker network create my-network
-
-docker run --name=banner-service-db -e POSTGRES_PASSWORD=admin -p 5432:5432 -d --rm --network=my-network postgres
-
-docker run -d -p 8080:8080 --network=my-network myapp
-
-postgres://postgres:admin@banner-service-db:5432/postgres?sslmode=disable
-
-docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli generate -i /local/api.yaml -g go-server -o /local/pkg/generated/open_api_server  && rm -f ${PWD}/pkg/generated/open_api_server/go.mod
-
-Постарался отразить свою работу в MakeFile. Но опишу конкретные шаги. 
-
-1) docker pull postgres - Качаем postgres
-2) docker run --name=flood-controll-task -e POSTGRES_PASSWORD=admin -p 5432:5432 -d --rm postgres - Запускаем контейнер с БД
-3) migrate create -ext sql -dir ./schema -seq init - Создали файлы, чтобы прописать миграцию. SQL Код для создания и удаления БД. (./schema)
-4) migrate -path ./schema -database 'postgres://postgres:admin@localhost:5432/postgres?sslmode=disable' up - Подняли наши таблицы
-5) migrate -path ./schema -database 'postgres://postgres:admin@localhost:5432/postgres?sslmode=disable' down - Убрали наши таблицы
 
