@@ -39,6 +39,7 @@
 - [Handlers](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/pkg/generated/open_api_server) - Это Сгенерированный `OpenApi Server` по данному [API](https://github.com/avito-tech/backend-trainee-assignment-2024/blob/main/api.yaml), реализующий прием HTTP запросов.
 - [Sevice](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/internal/service/banner.go) - Это связующее звено между `Database` и `Handlers`.
 - [DataBase](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/internal/repository) - Работа с базой данных с помощью `PostgreSQL`.
+- [Cache](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/internal/repository/cache) - In memory cache. Для быстрых ответов но немного устаревшей информации (5 минут).
 - [Main](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/cmd/server/main.go) - Запуск всех необходимых компонентов
 - [Configs](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/configs/config.yml) + [Env]() - Конфигурация Базы данных и Http приемника. Не стал прятать .env через .gitignore, так как проект учебный
 - [Client](https://github.com/Rustamchuk/Avito-Banner-Service/blob/main/.env) - Сгенерированный по `OpenApi` клиент для отправки запросов. Помогает в тестировании
@@ -58,7 +59,7 @@
   
 2. **Тегов и фичей небольшое количество (до 1000), RPS — 1k, SLI времени ответа — 50 мс, SLI успешности ответа — 99.99%**
 
-  Написан оптимизированный код, выдерживающий нагрузки
+  Реализовано благодря [In memory Cache](https://github.com/Rustamchuk/Avito-Banner-Service/tree/main/internal/repository/cache) Сохраняю ответы в кэш, чтобы в следующий раз на такой запрос не ходить в Базу данных. Если не прошло 5 минут. Благодяря этому сильно ускоряется сервис. Замеры были проведены.
 
 3. **Для авторизации доступов должны использоваться 2 вида токенов: пользовательский и админский.  Получение баннера может происходить с помощью пользовательского или админского токена, а все остальные действия могут выполняться только с помощью админского токена.**
 
@@ -70,11 +71,11 @@
 
 4. **Реализуйте интеграционный или E2E-тест на сценарий получения баннера.**
 
-  Тесты реализованы
+  Тесты реализованы. Postman
 
 5. **Если при получении баннера передан флаг use_last_revision, необходимо отдавать самую актуальную информацию.  В ином случае допускается передача информации, которая была актуальна 5 минут назад.**
 
-  Реализовано
+  Если есть такой флаг, то идем в DataBase сразу, не заглядываяя в Cache.
 
 6. **Баннеры могут быть временно выключены. Если баннер выключен, то обычные пользователи не должны его получать, при этом админы должны иметь к нему доступ.**
 
