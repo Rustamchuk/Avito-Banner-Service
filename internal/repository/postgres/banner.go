@@ -34,7 +34,6 @@ func (b *BannerPostgres) BannerGet(
 	args := []interface{}{}
 	argCounter := 1
 
-	// Добавление условий фильтрации, если параметры не равны 0
 	if featureId != 0 {
 		whereClauses = append(whereClauses, fmt.Sprintf("feature_id = $%d", argCounter))
 		args = append(args, featureId)
@@ -96,6 +95,10 @@ func (b *BannerPostgres) BannerGet(
 
 	if err = rows.Err(); err != nil {
 		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
+	}
+
+	if len(banners) == 0 {
+		return openapi.ImplResponse{Code: http.StatusNoContent}, nil
 	}
 
 	return openapi.Response(http.StatusOK, banners), nil
@@ -164,7 +167,6 @@ func (b *BannerPostgres) BannerIdPatch(
 		paramId++
 	}
 
-	// Удаление последней запятой и добавление условия WHERE
 	query = strings.TrimSuffix(query, ", ") + fmt.Sprintf(" WHERE banner_id = $%d", paramId)
 	params = append(params, id)
 
@@ -208,12 +210,8 @@ func (b *BannerPostgres) UserBannerGet(
 	ctx context.Context,
 	tagId int32,
 	featureId int32,
-	useLastRevision bool,
 	token string,
 ) (openapi.ImplResponse, error) {
 	banner, err := b.BannerGet(ctx, token, tagId, featureId, 1, 0)
-	if err != nil {
-		return openapi.ImplResponse{Code: http.StatusInternalServerError}, err
-	}
-	return banner, nil
+	return banner, err
 }

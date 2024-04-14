@@ -6,13 +6,6 @@ import (
 	_ "github.com/lib/pq" // PostgreSQL driver
 )
 
-const (
-	bannersTable     = "banners"
-	moviesTable      = "movies"
-	movieActorsTable = "movie_actors"
-	usersTable       = "users"
-)
-
 type Config struct {
 	Host     string
 	Port     string

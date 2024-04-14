@@ -3,14 +3,15 @@ package service
 import (
 	"context"
 	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository"
+	"github.com/Rustamchuk/Avito-Banner-Service/internal/repository/cache"
 	openapi "github.com/Rustamchuk/Avito-Banner-Service/pkg/generated/open_api_server/go"
 )
 
 type BannerImplementation struct {
-	repo repository.BannerRepo
+	repo *repository.Repository
 }
 
-func NewBannerImplementation(repo repository.BannerRepo) *BannerImplementation {
+func NewBannerImplementation(repo *repository.Repository) *BannerImplementation {
 	return &BannerImplementation{repo: repo}
 }
 
@@ -22,7 +23,7 @@ func (b *BannerImplementation) BannerGet(
 	limit int32,
 	offset int32,
 ) (openapi.ImplResponse, error) {
-	return b.repo.BannerGet(ctx, token, featureId, tagId, limit, offset)
+	return b.repo.BannerRepo.BannerGet(ctx, token, featureId, tagId, limit, offset)
 }
 
 func (b *BannerImplementation) BannerIdDelete(
@@ -30,7 +31,7 @@ func (b *BannerImplementation) BannerIdDelete(
 	id int32,
 	token string,
 ) (openapi.ImplResponse, error) {
-	return b.repo.BannerIdDelete(ctx, id, token)
+	return b.repo.BannerRepo.BannerIdDelete(ctx, id, token)
 }
 
 func (b *BannerImplementation) BannerIdPatch(
@@ -39,7 +40,7 @@ func (b *BannerImplementation) BannerIdPatch(
 	bannerIdPatchRequest openapi.BannerIdPatchRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
-	return b.repo.BannerIdPatch(ctx, id, bannerIdPatchRequest, token)
+	return b.repo.BannerRepo.BannerIdPatch(ctx, id, bannerIdPatchRequest, token)
 }
 
 func (b *BannerImplementation) BannerPost(
@@ -47,7 +48,7 @@ func (b *BannerImplementation) BannerPost(
 	bannerPostRequest openapi.BannerPostRequest,
 	token string,
 ) (openapi.ImplResponse, error) {
-	return b.repo.BannerPost(ctx, bannerPostRequest, token)
+	return b.repo.BannerRepo.BannerPost(ctx, bannerPostRequest, token)
 }
 
 func (b *BannerImplementation) UserBannerGet(
@@ -57,5 +58,22 @@ func (b *BannerImplementation) UserBannerGet(
 	useLastRevision bool,
 	token string,
 ) (openapi.ImplResponse, error) {
-	return b.repo.UserBannerGet(ctx, tagId, featureId, useLastRevision, token)
+	cacheKey := cache.Key{
+		TagId:     tagId,
+		FeatureId: featureId,
+		Token:     token}
+
+	if !useLastRevision {
+		banner, ok := b.repo.BannerCache.Get(cacheKey)
+		if ok {
+			return banner, nil
+		}
+	}
+
+	banner, err := b.repo.BannerRepo.UserBannerGet(ctx, tagId, featureId, token)
+	if err != nil {
+		return banner, err
+	}
+	b.repo.BannerCache.Set(cacheKey, banner)
+	return banner, err
 }
